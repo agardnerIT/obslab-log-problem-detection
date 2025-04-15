@@ -38,17 +38,18 @@
 	},
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": ".devcontainer/post-create.sh",
+	//"postCreateCommand": ".devcontainer/post-create.sh",
+	"postCreateCommand": "pip install -r /workspaces/$RepositoryName/.devcontainer/requirements.txt --break-system-packages && python3 /workspaces/$RepositoryName/environment_installer.py",
 
 	// Add recommended secrets
 	"secrets": {
-		"DT_ENV_ID_OBSLAB_LOG_PROBLEM_DETECTION": {
+		"DT_ENVIRONMENT_ID": {
 			 "description": "eg. abc12345 from https://abc12345.apps.dynatrace.com"
 	 },
-		"DT_ENV_OBSLAB_LOG_PROBLEM_DETECTION": {
+		"DT_ENVIRONMENT_TYPE": {
 			"description": "live, sprint or dev. Leave blank for live. Defaults to live"
 	 },
-	   "DT_API_TOKEN_OBSLAB_LOG_PROBLEM_DETECTION": {
+	   "DT_API_TOKEN": {
 			 "description": "Dynatrace API token with these permissions: `logs.ingest`, `events.ingest`, `settings.read`, `settings.write`"
 	 },
 	   "DT_NOTEBOOK_ID_LOG_PROBLEM_DETECTION": {

@@ -2,11 +2,11 @@
 
 #############################################################################
 # install pip packages
-pip install --break-system-packages -r requirements.txt
+# pip install --break-system-packages -r requirements.txt
 
 #############################################################################
 # Install cluster
-kind create cluster --config .devcontainer/kind-cluster.yml --wait 300s
+# kind create cluster --config .devcontainer/kind-cluster.yml --wait 300s
 
 #############################################################################
 # Add Helm chart(s)
@@ -15,21 +15,21 @@ helm repo update
 
 #############################################################################
 # Build URL from parts
-full_apps_url="https://${DT_ENV_ID_OBSLAB_LOG_PROBLEM_DETECTION}"
+full_apps_url="https://${DT_ENVIRONMENT_ID}"
 full_gen2_url=""
 
-if [ "${DT_ENV_OBSLAB_LOG_PROBLEM_DETECTION}" = "dev" ]; then
+if [ "${DT_ENVIRONMENT_TYPE}" = "dev" ]; then
   echo "environment is dev"
   full_apps_url+=".dev.apps.dynatracelabs.com"
   # Remove apps.
   full_gen2_url=${full_apps_url/apps.}
-elif [ "${DT_ENV_OBSLAB_LOG_PROBLEM_DETECTION}" = "sprint" ]; then
+elif [ "${DT_ENVIRONMENT_TYPE}" = "sprint" ]; then
   echo "environment is sprint"
   full_apps_url+=".sprint.apps.dynatracelabs.com"
   # Remove apps.
   full_gen2_url=${full_apps_url/apps.}
 else
-  echo "DT_ENV_OBSLAB_LOG_PROBLEM_DETECTION is either 'live' or some other value. Defaulting to live"
+  echo "DT_ENVIRONMENT_TYPE is either 'live' or some other value. Defaulting to live"
   full_apps_url+=".apps.dynatrace.com"
   full_gen2_url=${full_apps_url/.apps./.live.}
 fi
@@ -43,7 +43,7 @@ sed -i "s@DOCUMENT_ID_PLACEHOLDER@$DT_NOTEBOOK_ID_LOG_PROBLEM_DETECTION@g" otel-
 # Create DT API secret for collector
 kubectl create secret generic dynatrace-otelcol-dt-api-credentials \
   --from-literal=DT_ENDPOINT=$full_gen2_url/api/v2/otlp \
-  --from-literal=DT_API_TOKEN=$DT_API_TOKEN_OBSLAB_LOG_PROBLEM_DETECTION
+  --from-literal=DT_API_TOKEN=$DT_API_TOKEN
 
 #############################################################################
 # Install RBAC items so collector can talk to k8s API
@@ -63,8 +63,8 @@ helm upgrade -i my-otel-demo open-telemetry/opentelemetry-demo -f otel-demo-valu
 curl -X POST https://grzxx1q7wd.execute-api.us-east-1.amazonaws.com/default/codespace-tracker \
   -H "Content-Type: application/json" \
   -d "{
-    \"tenant\": \"$DT_ENV_ID_OBSLAB_LOG_PROBLEM_DETECTION\",
-    \"dt_environment\": \"$DT_ENV_OBSLAB_LOG_PROBLEM_DETECTION\",
+    \"tenant\": \"$DT_ENVIRONMENT_ID\",
+    \"dt_environment\": \"$DT_ENVIRONMENT_TYPE\",
     \"repo\": \"$GITHUB_REPOSITORY\",
     \"demo\": \"obslab-log-problem-detection\",
     \"codespace.name\": \"$CODESPACE_NAME\"
