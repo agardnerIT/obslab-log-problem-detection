@@ -7,9 +7,8 @@ TEST_TIMEOUT_SECONDS = os.environ.get("TESTING_TIMEOUT_SECONDS", 60)
 @pytest.mark.timeout(TEST_TIMEOUT_SECONDS)
 def test_dynatrace_ui(page: Page):
 
-    # It is a classic app
-    app_visual_name = "Settings Classic"
-    app_name = "settings"
+    app_visual_name = "Logs"
+    app_name = "logs"
 
     ################################################
     logger.info("Logging in")
@@ -26,14 +25,13 @@ def test_dynatrace_ui(page: Page):
 
     # ################################################
     logger.info(f"Opening {app_visual_name} app")
-    open_app_from_search_modal(page, app_name, is_classic_app=True)
+    open_app_from_search_modal(page, app_name, is_classic_app=False)
 
     # ################################################
     logger.info(f"{app_name} app is now displayed")
 
     # Open tags menu
-    logger.info("Opening Tags Menu")
-    wait_for_app_to_load(page, is_classic_app=True)
+    wait_for_app_to_load(page, is_classic_app=False)
     app_frame_locator, app_frame = get_app_frame_and_locator(page, is_classic_app=True)
 
     # Find and click on "Tags"
