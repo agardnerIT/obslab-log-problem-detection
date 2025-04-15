@@ -51,6 +51,9 @@ run_command(["kubectl", "apply", "-f", "collector-rbac.yaml"])
 # Install collector
 run_command(["helm", "upgrade", "-i", "dynatrace-collector", "open-telemetry/opentelemetry-collector", "-f", "collector-values.yaml"])
 
+# Install OpenTelemetry demo app
+run_command(["helm", "upgrade", "-i", "my-otel-demo", "open-telemetry/opentelemetry-demo", "-f", "otel-demo-values.yaml"])
+
 if CODESPACE_NAME.startswith("dttest-"):
     # Set default repository for gh CLI
     # Required for the e2e test harness
