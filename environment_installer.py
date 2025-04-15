@@ -63,7 +63,7 @@ if CODESPACE_NAME.startswith("dttest-"):
     # (because we're the owner and testing it)
     run_command(["gh", "label", "create", "e2e test failed", "--force"])
     run_command(["pip", "install", "-r", f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/requirements.txt", "--break-system-packages"])
-    run_command(["python",  f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/testharness.py"])
+    run_command(["python3",  f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/testharness.py"])
 
     # Testing finished. Destroy the codespace
     #run_command(["gh", "codespace", "delete", "--codespace", CODESPACE_NAME, "--force"])
