@@ -48,6 +48,8 @@ run_command(["kubectl", "create", "secret", "generic", "dynatrace-otelcol-dt-api
 # Apply collector RBAC
 run_command(["kubectl", "apply", "-f", "collector-rbac.yaml"])
 
+# Install collector
+run_command(["helm", "upgrade", "-i", "dynatrace-collector", "open-telemetry/opentelemetry-collector", "-f", "collector-values.yaml"])
 
 if CODESPACE_NAME.startswith("dttest-"):
     # Set default repository for gh CLI
