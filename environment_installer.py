@@ -42,6 +42,8 @@ run_command(["helm", "repo", "update"])
 do_file_replace(pattern="otel-demo-values.yaml", find_string="FULL_APPS_URL_PLACEHOLDER", replace_string=DT_TENANT_APPS)
 do_file_replace(pattern="otel-demo-values.yaml", find_string="DOCUMENT_ID_PLACEHOLDER", replace_string=DT_NOTEBOOK_ID)
 
+# Create DT API secret for collector
+run_command(["kubectl", "create", "secret", "generic", "dynatrace-otelcol-dt-api-credentials", f"--from-literal=DT_ENDPOINT={DT_TENANT_LIVE}/api/v2/otlp", "--from-literal=DT_API_TOKEN=$DT_API_TOKEN"])
 
 # Apply collector RBAC
 run_command(["kubectl", "apply", "-f", "collector-rbac.yaml"])
@@ -64,6 +66,6 @@ if CODESPACE_NAME.startswith("dttest-"):
     run_command(["python",  f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/testharness.py"])
 
     # Testing finished. Destroy the codespace
-    run_command(["gh", "codespace", "delete", "--codespace", CODESPACE_NAME, "--force"])
+    #run_command(["gh", "codespace", "delete", "--codespace", CODESPACE_NAME, "--force"])
 else:
     send_startup_ping(demo_name="obslab-log-problem-detection")
