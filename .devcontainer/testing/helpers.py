@@ -79,7 +79,8 @@ def login(page: Page):
 
 def open_search_menu(page: Page):
     page.get_by_test_id("dock-search").click()
-    expect(page.locator("h1")).to_have_text("Quickly find your apps, documents, entities, and more", timeout=WAIT_TIMEOUT)
+    expect(page.get_by_placeholder("Search and navigate your environment")).to_be_attached(timeout=WAIT_TIMEOUT)
+    #expect(page.locator("h1")).to_have_text("Quickly find your apps, documents, entities, and more", timeout=WAIT_TIMEOUT)
 
 def search_for(page: Page, search_term: str):
     page.get_by_label("Search query").fill(search_term)
