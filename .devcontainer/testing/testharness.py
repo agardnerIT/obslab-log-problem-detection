@@ -9,7 +9,7 @@ DT_API_TOKEN_TESTING = os.getenv("DT_API_TOKEN_TESTING","")
 # To run the test harness
 # Use these short-lived tokens during the test harness.
 DT_TENANT_APPS, DT_TENANT_LIVE = build_dt_urls(dt_env_id=DT_ENVIRONMENT_ID, dt_env_type=DT_ENVIRONMENT_TYPE)
-DT_API_TOKEN_TO_USE = create_dt_api_token(token_name="[devrel e2e testing] DT_LOG_PROBLEM_DETECTION_E2E_TEST_TOKEN", scopes=["logs.ingest", "events.ingest", "settings.read", "settings.write"], dt_rw_api_token=DT_API_TOKEN_TESTING, dt_tenant_live=DT_TENANT_LIVE)
+DT_API_TOKEN_TO_USE = create_dt_api_token(token_name="[devrel e2e testing] DT_LOG_PROBLEM_DETECTION_E2E_TEST_TOKEN", scopes=["logs.ingest", "metrics.ingest", "openTelemetryTrace.ingest", "events.ingest"], dt_rw_api_token=DT_API_TOKEN_TESTING, dt_tenant_live=DT_TENANT_LIVE)
 # store_env_var(key="DT_API_TOKEN", value=DT_API_TOKEN_TO_USE)
 
 # The secret will already exist from environment_installer
