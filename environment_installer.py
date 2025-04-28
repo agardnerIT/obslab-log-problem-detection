@@ -8,7 +8,7 @@ DT_NOTEBOOK_ID = os.environ.get("DT_NOTEBOOK_ID_LOG_PROBLEM_DETECTION", "")
 
 MONACO_VERSION="v2.15.2"
 JMETER_VERSION="5.6.3"
-RUNME_CLI_VERSION = "3.10.2"
+RUNME_CLI_VERSION = "3.13.1"
 
 # Install RunMe
 run_command(["mkdir", "runme_binary"])
