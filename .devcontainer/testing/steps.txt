@@ -1,5 +1,5 @@
 test_dynatrace_ui_validate_observability_data.py
 send configuration change event to Dynatrace
-update flags.yaml - set cartFailure flag to on
+write new flags
 apply new flags and scale flagd
 test_dynatrace_wait_for_problem.py
