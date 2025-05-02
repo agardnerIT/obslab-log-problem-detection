@@ -7,33 +7,35 @@ This simulates releasing new functionality to your users in production.
 ## Inform Dynatrace
 
 First, inform Dynatrace that a change is about to occur.
-Namely, you are going to make a change to the `my-otel-demo-cartservice` service 
-by changing the `cartServiceFailure` feature flag from `off` to `on`.
+Namely, you are going to make a change to the `cart` service 
+by changing the `cartFailure` feature flag from `off` to `on`.
 
 Tell Dynatrace about the upcoming change by sending an event (note: This event does **not** actually make the change; you need to do this).
 
 Run the following:
 
-```
-./runtimeChange.sh my-otel-demo-cartservice cartServiceFailure on
+``` {"name": "send configuration change event to Dynatrace"}
+./runtimeChange.sh cart cartFailure on
 ```
 
-Refresh the `my-otel-demo-cartservice` page and near the bottom you should see the configuration change event.
+Refresh the `cart` page and near the bottom you should see the configuration change event.
 
 ![configuration changed event](images/configuration-change-event.png)
 
 ## Make Change
 
-Open this file: `flags.yaml`
+Run this script which will change the `defaultValue` of `cartServiceFailure` from `"off"` to `"on"`:
 
-Change the `defaultValue` of `cartServiceFailure` from `"off"` to `"on"` (scroll to line `75`)
-
-![feature flag YAML](images/change-feature-flag.png)
-
-Now apply the change by running this command:
-
+``` { "name": "write new flags" }
+python3 /workspaces/REPOSITORY_NAME/write_new_flags.py
 ```
-kubectl apply -f $CODESPACE_VSCODE_FOLDER/flags.yaml
+
+Now apply the change and allow the feature flag backend to re-read them by running this command:
+
+``` { "name": "apply new flags and scale flagd"}
+kubectl apply -f $CODESPACE_VSCODE_FOLDER/new_flags.yaml
+kubectl scale deploy/flagd --replicas=0
+kubectl scale deploy/flagd --replicas=1
 ```
 
 You should see:
@@ -56,18 +58,17 @@ Repeatedly add an item to your cart, go to the cart and empty it. Hope you're "l
 
 ## Open Problems App
 
-In Dynatrace:
+In a notebook, use the following DQL query to search for the relevant problem record.
+As mentioned above, the app will take some time to generate the error thus expect this DQL to return 0 results for a few moments:
 
-* Press `ctrl + k`. Search for `problems`
-* Open the problems app
+``` {"": "fetch problems with dql"}
+fetch events, from: now()-30m, to: now()
+| filter event.kind == "DAVIS_PROBLEM"
+| filter event.status_transition == "CREATED"
+| filter matchesPhrase(event.name, "Critical Redis connection error!")',
+```
 
-Wait for the problem to appear.
-
-You can also open the `my-otel-demo-cartservice` Service screen to monitor for failures.
-
-* Press `ctrl + k`. Search for `Services`
-* Open the services app + navigate to the `my-otel-demo-cartservice`
-* Monitor the `Failed requests` chart
+When a problem record appears, click any field then `Open record with...` and choose the `Problems` app.
 
 <div class="grid cards" markdown>
 - [Click Here to Continue :octicons-arrow-right-24:](review-problem.md)

@@ -1,5 +1,5 @@
-//test_dynatrace_ui_tag_exists.py
-//change tag description
-//wait for crossplane to sync
-//test_dynatrace_ui_check_tag_has_been_updated.py
-//reset tag description
+test_dynatrace_ui_validate_observability_data.py
+send configuration change event to Dynatrace
+update flags.yaml - set cartFailure flag to on
+apply new flags and scale flagd
+test_dynatrace_wait_for_problem.py

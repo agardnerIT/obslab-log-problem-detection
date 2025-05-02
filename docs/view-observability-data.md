@@ -28,9 +28,9 @@ For example, to validate logs are available for `cartservice`, use one of the fo
 * Add a Dynatrace Query Language (DQL) tile
 * Use the following DQL query:
 
-```
+```{"name": "fetch cart service logs"}
 fetch logs
-| filter service.name == "cartservice"
+| filter service.name == "cart"
 | limit 10
 ```
 
