@@ -20,7 +20,10 @@ run_command(["kubectl", "create", "secret", "generic", "dynatrace-otelcol-dt-api
 run_command(["kubectl", "scale", "deploy", "dynatrace-collector-opentelemetry-collector", "--replicas", "0"])
 run_command(["kubectl", "scale", "deploy", "dynatrace-collector-opentelemetry-collector", "--replicas", "1"])
 
-steps = get_steps(f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/steps.txt")
+if DEV_MODE:
+    steps = get_steps("steps.txt")
+else:
+    steps = get_steps(f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/steps.txt")
 INSTALL_PLAYWRIGHT_BROWSERS = False
 
 def run_command_in_background(step):
@@ -38,7 +41,7 @@ if DEV_MODE == "FALSE":
             INSTALL_PLAYWRIGHT_BROWSERS = True
 
 if INSTALL_PLAYWRIGHT_BROWSERS:
-    subprocess.run(["playwright", "install", "chromium-headless-shell", "--only-shell"])
+    subprocess.run(["playwright", "install", "chromium-headless-shell", "--only-shell", "--with-deps"])
 
 for step in steps:
     step = step.strip()
