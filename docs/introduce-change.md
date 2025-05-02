@@ -61,11 +61,11 @@ Repeatedly add an item to your cart, go to the cart and empty it. Hope you're "l
 In a notebook, use the following DQL query to search for the relevant problem record.
 As mentioned above, the app will take some time to generate the error thus expect this DQL to return 0 results for a few moments:
 
-``` {"": "fetch problems with dql"}
+``` {"name": "fetch problems with dql"}
 fetch events, from: now()-30m, to: now()
 | filter event.kind == "DAVIS_PROBLEM"
 | filter event.status_transition == "CREATED"
-| filter matchesPhrase(event.name, "Critical Redis connection error!")',
+| filter matchesPhrase(event.name, "Critical Redis connection error!")
 ```
 
 When a problem record appears, click any field then `Open record with...` and choose the `Problems` app.
