@@ -34,7 +34,8 @@ def test_dynatrace_ui(page: Page):
     app_frame_locator, app_frame = get_app_frame_and_locator(page, is_classic_app=False)
 
     # Find and click on "Logs DQL Builder" search box
-    logs_search_box = app_frame_locator.get_by_test_id("dqlbuiler-form-field")
+    logs_search_box = app_frame_locator.get_by_label("Filter field")
+    #logs_search_box = app_frame_locator.get_by_test_id("dqlbuiler-form-field")
     logger.info(logs_search_box)
     #expect(logs_search_box).to_be_attached(timeout=WAIT_TIMEOUT)
     expect(logs_search_box).to_be_editable(timeout=WAIT_TIMEOUT)

@@ -62,7 +62,7 @@ def test_dynatrace_ui(page: Page):
         # Try to find the "no data" <h6>
         # In this case, this is expected for most of this loop
         # The logic here is to find this, sleep, increment the counter then try again
-        # If indeed data IS found, break out of the loop 
+        # If data IS found, break out of the loop 
         no_data_heading = section.locator("h6")
         if not no_data_heading.is_visible():
             DATA_FOUND = True
