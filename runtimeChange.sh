@@ -44,4 +44,3 @@ curl -X POST "$full_gen2_url/api/v2/events/ingest" \
   }"
 
 echo
-echo "Now manually change cartFailure.defaultValue to on in flags.yaml and apply using kubectl"

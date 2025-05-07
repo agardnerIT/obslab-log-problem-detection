@@ -2,7 +2,7 @@ import yaml
 import json
 import os
 
-REPOSITORY_NAME = os.environ.get("REPOSITORY_NAME")
+REPOSITORY_NAME = os.environ.get("RepositoryName")
 
 # Load the YAML file
 with open(f"/workspaces/{REPOSITORY_NAME}/flags.yaml", "r") as file:

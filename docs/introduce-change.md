@@ -15,7 +15,8 @@ Tell Dynatrace about the upcoming change by sending an event (note: This event d
 Run the following:
 
 ``` {"name": "send configuration change event to Dynatrace"}
-./runtimeChange.sh cart cartFailure on
+export DT_API_TOKEN=$(kubectl get secrets/dynatrace-otelcol-dt-api-credentials -o go-template='{{.data.DT_API_TOKEN | base64decode }}')
+/workspaces/$RepositoryName/runtimeChange.sh cart cartFailure on
 ```
 
 Refresh the `cart` page and near the bottom you should see the configuration change event.
@@ -27,7 +28,7 @@ Refresh the `cart` page and near the bottom you should see the configuration cha
 Run this script which will change the `defaultValue` of `cartServiceFailure` from `"off"` to `"on"`:
 
 ``` { "name": "write new flags" }
-python3 /workspaces/REPOSITORY_NAME/write_new_flags.py
+python3 /workspaces/$RepositoryName/write_new_flags.py
 ```
 
 Now apply the change and allow the feature flag backend to re-read them by running this command:
