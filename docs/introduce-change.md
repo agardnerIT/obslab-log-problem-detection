@@ -43,8 +43,8 @@ You should see:
 
 ```
 configmap/my-otel-demo-flagd-config configured
-deployment/fladg scaled
-deployment/fladg scaled
+deployment.apps/flagd scaled
+deployment.apps/flagd scaled
 ```
 
 !!! warning "Be Patient"
