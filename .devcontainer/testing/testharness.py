@@ -20,7 +20,7 @@ run_command(["kubectl", "create", "secret", "generic", "dynatrace-otelcol-dt-api
 run_command(["kubectl", "scale", "deploy", "dynatrace-collector-opentelemetry-collector", "--replicas", "0"])
 run_command(["kubectl", "scale", "deploy", "dynatrace-collector-opentelemetry-collector", "--replicas", "1"])
 
-if DEV_MODE:
+if DEV_MODE == "TRUE":
     steps = get_steps("steps.txt")
 else:
     steps = get_steps(f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/steps.txt")
