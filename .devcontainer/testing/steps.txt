@@ -1,4 +1,4 @@
-//test_dynatrace_ui_validate_observability_data.py
+test_dynatrace_ui_validate_observability_data.py
 send configuration change event to Dynatrace
 write new flags
 apply new flags and scale flagd
