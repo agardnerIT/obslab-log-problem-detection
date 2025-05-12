@@ -2,10 +2,10 @@ from loguru import logger
 from helpers import *
 import time
 
-TEST_TIMEOUT_SECONDS = os.environ.get("TESTING_TIMEOUT_SECONDS", 60)
+MAX_ITERATIONS = 10
 SLEEP_TIME_BETWEEN_PROBLEM_LOOKUP_ATTEMPTS = os.environ.get("TESTING_SLEEP_TIME_BETWEEN_PROBLEM_LOOKUP_ATTEMPTS", 30)
 
-@pytest.mark.timeout(TEST_TIMEOUT_SECONDS)
+@pytest.mark.timeout(SLEEP_TIME_BETWEEN_PROBLEM_LOOKUP_ATTEMPTS*MAX_ITERATIONS)
 def test_dynatrace_ui(page: Page):
 
     app_visual_name = "Notebooks"
@@ -35,6 +35,9 @@ def test_dynatrace_ui(page: Page):
     time.sleep(5)
 
     create_new_document(page=page, close_microguide=True)
+
+    time.sleep(5)
+
     add_document_section(page=page, section_type_text=SECTION_TYPE_DQL)
     # Deliberately do not validate using hte built-in logic here
     # Because it is likely that problem record does not exist first time around
@@ -45,29 +48,30 @@ def test_dynatrace_ui(page: Page):
     app_frame_locator, app_frame = get_app_frame_and_locator(page)
     count = 0
     DATA_FOUND = False
-    while count < 10:
+    while count < MAX_ITERATIONS:
+        logger.info(f"Loop Count: {count}")
         # Run the DQL query and see if a problem exists or not
         # Click the Run button
-        section = app_frame_locator.locator("[data-testid-section-index=\"0\"]")
-        section.get_by_test_id("run-query-button").click(timeout=WAIT_TIMEOUT)
-
         # wait for DQL to finish
         # if this times out, either query took too long
         # of the query was invalid
         try:
+            section = app_frame_locator.locator("[data-testid-section-index=\"0\"]")
+            section.get_by_test_id("run-query-button").click(timeout=WAIT_TIMEOUT)
+
             section.get_by_test_id("result-container").wait_for(timeout=WAIT_TIMEOUT)
+
+            # Try to find the "no data" <h6>
+            # In this case, this is expected for most of this loop
+            # The logic here is to find this, sleep, increment the counter then try again
+            # If data IS found, break out of the loop 
+            no_data_heading = section.locator("h6")
+            if not no_data_heading.is_visible():
+                DATA_FOUND = True
+                break
         except:
             pytest.fail("Either query timed out or an invalid query was provided.")
-
-        # Try to find the "no data" <h6>
-        # In this case, this is expected for most of this loop
-        # The logic here is to find this, sleep, increment the counter then try again
-        # If data IS found, break out of the loop 
-        no_data_heading = section.locator("h6")
-        if not no_data_heading.is_visible():
-            DATA_FOUND = True
-            break
-        else:
+        finally:
             # Sleep for 30s between attempts
             time.sleep(SLEEP_TIME_BETWEEN_PROBLEM_LOOKUP_ATTEMPTS)
             count += 1
