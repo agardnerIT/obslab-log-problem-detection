@@ -17,7 +17,6 @@ run_command(["tar", "-xvf", "runme_binary/runme_linux_x86_64.tar.gz", "--directo
 run_command(["sudo", "mv", "runme_binary/runme", "/usr/local/bin"])
 run_command(["rm", "-rf", "runme_binary"])
 
-exit()
 # Build DT environment URLs
 DT_TENANT_APPS, DT_TENANT_LIVE = build_dt_urls(dt_env_id=DT_ENVIRONMENT_ID, dt_env_type=DT_ENVIRONMENT_TYPE)
 
