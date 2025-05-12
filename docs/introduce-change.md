@@ -35,8 +35,8 @@ Now apply the change and allow the feature flag backend to re-read them by runni
 
 ``` { "name": "apply new flags and scale flagd"}
 kubectl apply -f $CODESPACE_VSCODE_FOLDER/new_flags.yaml
-kubectl scale deploy/flagd --replicas=0
-kubectl scale deploy/flagd --replicas=1
+kubectl scale deploy/flagd --replicas=0 --timeout=2m
+kubectl scale deploy/flagd --replicas=1 --timeout=2m
 ```
 
 You should see:

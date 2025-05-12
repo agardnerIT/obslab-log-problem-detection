@@ -8,7 +8,7 @@ DT_NOTEBOOK_ID = os.environ.get("DT_NOTEBOOK_ID_LOG_PROBLEM_DETECTION", "")
 
 MONACO_VERSION="v2.15.2"
 JMETER_VERSION="5.6.3"
-RUNME_CLI_VERSION = "3.13.1"
+RUNME_CLI_VERSION = "3.13.2"
 
 # Install RunMe
 run_command(["mkdir", "runme_binary"])
@@ -17,6 +17,7 @@ run_command(["tar", "-xvf", "runme_binary/runme_linux_x86_64.tar.gz", "--directo
 run_command(["sudo", "mv", "runme_binary/runme", "/usr/local/bin"])
 run_command(["rm", "-rf", "runme_binary"])
 
+exit()
 # Build DT environment URLs
 DT_TENANT_APPS, DT_TENANT_LIVE = build_dt_urls(dt_env_id=DT_ENVIRONMENT_ID, dt_env_type=DT_ENVIRONMENT_TYPE)
 
