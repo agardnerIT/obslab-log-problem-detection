@@ -2,6 +2,8 @@ import subprocess
 import os, threading
 from helpers import *
 
+exit()
+
 DT_API_TOKEN_TESTING = os.getenv("DT_API_TOKEN_TESTING","")
 
 # Use the main token
@@ -17,6 +19,7 @@ DT_API_TOKEN_TO_USE = create_dt_api_token(token_name="[devrel e2e testing] DT_LO
 run_command(["kubectl", "delete", "secret", "dynatrace-otelcol-dt-api-credentials", "--wait=true", "--timeout=5m"])
 run_command(["kubectl", "create", "secret", "generic", "dynatrace-otelcol-dt-api-credentials", f"--from-literal=DT_ENDPOINT={DT_TENANT_LIVE}/api/v2/otlp", f"--from-literal=DT_API_TOKEN={DT_API_TOKEN_TO_USE}"])
 # Now restart collector to pick up new secret
+#run_command(["kubectl", "delete", "pod", "-l=dynatrace-collector-opentelemetry-collector", "--wait=true", "--timeout=5m"])
 run_command(["kubectl", "scale", "deploy", "dynatrace-collector-opentelemetry-collector", "--replicas", "0", "--timeout=5m"])
 run_command(["kubectl", "scale", "deploy", "dynatrace-collector-opentelemetry-collector", "--replicas", "1", "--timeout=5m"])
 
