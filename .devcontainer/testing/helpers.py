@@ -18,20 +18,18 @@ TESTING_DYNATRACE_USER_EMAIL = os.environ.get("TESTING_DYNATRACE_USER_EMAIL", ""
 TESTING_DYNATRACE_USER_PASSWORD = os.environ.get("TESTING_DYNATRACE_USER_PASSWORD", "")
 REPOSITORY_NAME = os.environ.get("RepositoryName", "")
 DEV_MODE = os.environ.get("DEV_MODE", "FALSE").upper() # This is a string. NOT a bool.
+CURRENT_USER = getpass.getuser()
+GITHUB_REPOSITORY = os.environ.get("GITHUB_REPOSITORY","")
 
 TESTING_BASE_DIR = ""
-
-# If any of these words are found in command execution output
-# The printing of the output to console will be suppressed
-# Add words here to block more things
-SENSITIVE_WORDS = ["secret", "secrets", "token", "tokens", "generate-token"]
-
 if DEV_MODE == "TRUE":
-    TESTING_BASE_DIR = f"./"
+    print("DEV_MODE IS TRUE!")
+    TESTING_BASE_DIR = "./"
+    print(f"TESTING_BASE_DIR: {TESTING_BASE_DIR}")
 else:
     TESTING_BASE_DIR = f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing"
-
-
+print(f"DEV_MODE: {DEV_MODE}")
+print(f"TESTING_BASE_DIR: {TESTING_BASE_DIR}")
 
 def get_steps(filename):
     with open(filename, mode="r") as steps_file:
@@ -44,11 +42,6 @@ def get_steps(filename):
     
     return steps_clean
 
-# TODO: This assumes env is running on GitHub Codespaces. Improve this
-def create_github_issue(output, step_name):
-    subprocess.run(["gh", "issue", "create", "--label", "e2e test failed", "--title", f"Failed on step: {step_name}", "--body", f"The end to end test script failed on step: {step_name}\n\n## Output\n```\n{output.stdout}\n```\n\n## stderr \n```\n{output.stderr}\n```"])
-    exit(0)
-
 if (
       DT_ENVIRONMENT_ID == "" or
       DT_ENVIRONMENT_TYPE == "" or
@@ -58,10 +51,36 @@ if (
    ):
        print("MISSING MANDATORY ENV VARS. EXITING.")
        print(f"DT_ENVIRONMENT_ID: {DT_ENVIRONMENT_ID}")
-       print(f"DT_ENVIRONMENT_TYPE: {DT_ENVIRONMENT_TYPE}")
        print(f"TESTING_DYNATRACE_USER_EMAIL: {TESTING_DYNATRACE_USER_EMAIL}")
        print(f"TESTING_DYNATRACE_USER_PASSWORD: {TESTING_DYNATRACE_USER_PASSWORD}")
        exit()
+
+def send_business_event(error_obj_json):
+    DT_APPS_URL, DT_LIVE_URL = build_dt_urls(dt_env_id=DT_ENVIRONMENT_ID, dt_env_type=DT_ENVIRONMENT_TYPE)
+    DT_API_TOKEN_TO_USE = create_dt_api_token(token_name=f"[{GITHUB_REPOSITORY}] bizevent for broken e2e test", scopes=["bizevents.ingest"], dt_rw_api_token=DT_API_TOKEN_TESTING, dt_tenant_live=DT_LIVE_URL)
+    headers = {
+        "Content-Type": "application/cloudevent+json",
+        "Authorization": f"Api-Token {DT_API_TOKEN_TO_USE}"
+    }
+    payload = {
+        "specversion": "1.0",
+        "id": "1",
+        "source": GITHUB_REPOSITORY,
+        "type": "e2e.test.failed",
+        "event.provider": f"github.com/{GITHUB_REPOSITORY}",
+        "data": {
+            "body": "e2e test failed",
+            "returncode": error_obj_json.returncode,
+            "stdout": error_obj_json.stdout,
+            "stderr": error_obj_json.stderr
+        }
+    }
+    resp = requests.post(
+        url=f"{DT_LIVE_URL}/api/v2/bizevents/ingest",
+        headers=headers,
+        json=payload
+    )
+    logger.info(resp.content)
 
 def login(page: Page):
     page.goto("https://sso.dynatrace.com")
@@ -77,43 +96,29 @@ def login(page: Page):
 
 def open_search_menu(page: Page):
     page.get_by_test_id("dock-search").click()
-    expect(page.get_by_placeholder("Search and navigate your environment")).to_be_attached(timeout=WAIT_TIMEOUT)
     #expect(page.locator("h1")).to_have_text("Quickly find your apps, documents, entities, and more", timeout=WAIT_TIMEOUT)
+    expect(page.get_by_placeholder("Search and navigate your environment")).to_be_attached(timeout=WAIT_TIMEOUT)
 
 def search_for(page: Page, search_term: str):
     page.get_by_label("Search query").fill(search_term)
     expect(page.get_by_label("Result details")).to_be_visible(timeout=WAIT_TIMEOUT)
 
-def open_app_from_search_modal(page: Page, app_name: str, is_classic_app: bool = False):
-    
-    if is_classic_app:
-        locator_term = f"[id='apps:dynatrace.classic.{app_name}']"
-        page.locator(locator_term).click()
-        page.wait_for_url(f"**/dynatrace.classic.{app_name}/**", timeout=WAIT_TIMEOUT)
-    else:
-        locator_term = f"[id='apps:dynatrace.{app_name}']"
-        page.locator(locator_term).click()
-        page.wait_for_url(f"**/dynatrace.{app_name}/**", timeout=WAIT_TIMEOUT)
-
+def open_app_from_search_modal(page: Page, app_name: str):
+    page.locator(f"[id='apps:dynatrace.{app_name}']").click()
+    page.wait_for_url(f"**/dynatrace.{app_name}/**")
     expect(page).to_have_title(re.compile(app_name, re.IGNORECASE))
 
-    wait_for_app_to_load(page, is_classic_app=is_classic_app)
+    wait_for_app_to_load(page)
 
-def get_app_frame_and_locator(page: Page, is_classic_app: bool = False):
-
-    if is_classic_app:
-        frame_locator = page.frame_locator('[data-testid="cluster-wrapper-app-iframe"]')
-    else:
-        frame_locator = page.frame_locator('[data-testid="app-iframe"]')
-
+def get_app_frame_and_locator(page: Page):
+    frame_locator = page.frame_locator('[data-testid="app-iframe"]')
     frame = frame_locator.owner
     return frame_locator, frame
 
-def wait_for_app_to_load(page: Page, is_classic_app: bool = False):
-    frame_locator, frame = get_app_frame_and_locator(page, is_classic_app=is_classic_app)
-
-    expect(frame).to_have_attribute(name="data-isloaded", value="true", timeout=WAIT_TIMEOUT)
-    frame.locator("#content_root").is_visible(timeout=WAIT_TIMEOUT)
+def wait_for_app_to_load(page: Page):
+    frame_locator, frame = get_app_frame_and_locator(page)
+    expect(frame).to_have_attribute(name="data-isloaded", value="true")
+    frame.locator("#content_root").is_visible()
 
     return frame_locator, frame
 
@@ -289,24 +294,3 @@ def create_dt_api_token(token_name, scopes, dt_rw_api_token, dt_tenant_live):
 def store_env_var(key, value):
     with open(file=".env", mode="a") as env_file:
         env_file.write(f"{key}={value}\n")
-
-def run_command(args, ignore_errors=False):
-    output = subprocess.run(args, capture_output=True, text=True, encoding="UTF8")
-
-    # Secure coding. Don't print sensitive info to console.
-    # Find common elements between blocked words and args.
-    # Only print output if not found.
-    # If found, it means the output of this command (as given in args) is expected to be sensitive
-    # So do not print.
-    set1 = set(args)
-    set2 = set(SENSITIVE_WORDS)
-    common_elems = (set1 & set2)
-    if not common_elems:
-        logger.info(output.stdout)
-
-    # Annoyingly, if git has nothing to commit
-    # it exits with a returncode == 1
-    # So ignore any git errors but exit for all others
-    if not ignore_errors and output.returncode > 0:
-        exit(f"Got an error! Return Code: {output.returncode}. Error: {output.stderr}. Stdout: {output.stdout}. Exiting.")
-    return output

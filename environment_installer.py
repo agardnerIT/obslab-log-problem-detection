@@ -9,6 +9,10 @@ DT_NOTEBOOK_ID = os.environ.get("DT_NOTEBOOK_ID_LOG_PROBLEM_DETECTION", "")
 MONACO_VERSION="v2.15.2"
 JMETER_VERSION="5.6.3"
 RUNME_CLI_VERSION = "3.13.2"
+YQ_VERSION="v4.44.3"
+YQ_BINARY="yq_linux_amd64"
+KUBECTL_VERSION="v1.30.0"
+KIND_VERSION="v1.30.0"
 
 # Install RunMe
 run_command(["mkdir", "runme_binary"])
@@ -16,6 +20,21 @@ run_command(["wget", "-O", "runme_binary/runme_linux_x86_64.tar.gz", f"https://d
 run_command(["tar", "-xvf", "runme_binary/runme_linux_x86_64.tar.gz", "--directory", "runme_binary"])
 run_command(["sudo", "mv", "runme_binary/runme", "/usr/local/bin"])
 run_command(["rm", "-rf", "runme_binary"])
+
+# Install yq
+run_command(["wget", f"https://github.com/mikefarah/yq/releases/download/{YQ_VERSION}/{YQ_BINARY}", "-O" "/usr/bin/yq"])
+run_command(["chmod", "+x", "/usr/bin/yq"])
+
+# Install kubectl
+run_command(["curl", "-sSL", "-o", "/usr/local/bin/kubectl", f"https://storage.googleapis.com/kubernetes-release/release/{KUBECTL_VERSION}/bin/linux/amd64/kubectl"])
+run_command(["chmod", "+x","/usr/local/bin/kubectl"])
+
+# Install Helm
+run_command(["curl", "-s", "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3", "|", "bash","-"])
+
+# Install Kind
+run_command(["curl", "-sSL", "-o", "/usr/local/bin/kind", f"https://kind.sigs.k8s.io/dl/{KIND_VERSION}/kind-linux-amd64"])
+run_command(["chmod", "+x", "/usr/local/bin/kind"])
 
 # Build DT environment URLs
 DT_TENANT_APPS, DT_TENANT_LIVE = build_dt_urls(dt_env_id=DT_ENVIRONMENT_ID, dt_env_type=DT_ENVIRONMENT_TYPE)
@@ -27,8 +46,7 @@ run_command(["kind", "create", "cluster", "--config", ".devcontainer/kind-cluste
 # run_command(["kubectl", "-n", "crossplane-system", "create", "secret", "generic", "dt-details", f"--from-literal=DYNATRACE_ENV_URL={DT_TENANT_LIVE}", f"--from-literal=DYNATRACE_API_TOKEN={DT_API_TOKEN}"])
 
 # Install OpenTelemetry demo app
-run_command(["helm", "repo", "add", "open-telemetry", "https://open-telemetry.github.io/opentelemetry-helm-charts"])
-run_command(["helm", "repo", "update"])
+
 # run_command(["helm", "install", "crossplane", "--namespace", "crossplane-system", "--wait", "crossplane-stable/crossplane", "--values", "crossplane-values.yaml"])
 
 # run_command(["kubectl", "apply", "-f", "terraform-config.yaml"])
@@ -52,25 +70,15 @@ run_command(["kubectl", "apply", "-f", "collector-rbac.yaml"])
 run_command(["helm", "upgrade", "-i", "dynatrace-collector", "open-telemetry/opentelemetry-collector", "-f", "collector-values.yaml"])
 
 # Install OpenTelemetry demo app
+run_command(["helm", "repo", "add", "open-telemetry", "https://open-telemetry.github.io/opentelemetry-helm-charts"])
+run_command(["helm", "repo", "update"])
 run_command(["helm", "upgrade", "-i", "my-otel-demo", "open-telemetry/opentelemetry-demo", "-f", "otel-demo-values.yaml"])
 
 if CODESPACE_NAME.startswith("dttest-"):
-    # Set default repository for gh CLI
-    # Required for the e2e test harness
-    # If it needs to interact with GitHub (eg. create an issue for a failed e2e test)
-    run_command(["gh", "repo", "set-default", GITHUB_REPOSITORY])
-
-    # Now set up a label, used if / when the e2e test fails
-    # This may already be set (when demos are re-executed in repos)
-    # so catch error and always return true
-    # Otherwise the entire post-start.sh script could fail
-    # We can do this as we know we have permission to this repo
-    # (because we're the owner and testing it)
-    run_command(["gh", "label", "create", "e2e test failed", "--force"])
-    run_command(["pip", "install", "-r", f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/requirements.txt", "--break-system-packages"])
-    run_command(["python3",  f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/testharness.py"])
+    run_command(["pip", "install", "-r", f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/requirements.txt"])
+    run_command(["python",  f"/workspaces/{REPOSITORY_NAME}/.devcontainer/testing/testharness.py"])
 
     # Testing finished. Destroy the codespace
-    run_command(["gh", "codespace", "delete", "--codespace", CODESPACE_NAME, "--force"])
+    #run_command(["gh", "codespace", "delete", "--codespace", CODESPACE_NAME, "--force"])
 else:
     send_startup_ping(demo_name="obslab-log-problem-detection")
